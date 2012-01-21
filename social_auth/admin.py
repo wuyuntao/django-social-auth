@@ -8,7 +8,8 @@ class UserSocialAuthOption(admin.ModelAdmin):
     """Social Auth user options"""
     list_display = ('id', 'user', 'provider', 'uid')
     search_fields = ('user__first_name', 'user__last_name', 'user__email')
-    list_filter = ('provider',)
+    # Not supported by MongoDB
+    # list_filter = ('provider',)
     raw_id_fields = ('user',)
     list_select_related = True
 
@@ -22,7 +23,8 @@ class NonceOption(admin.ModelAdmin):
 class AssociationOption(admin.ModelAdmin):
     """Association options"""
     list_display = ('id', 'server_url', 'assoc_type')
-    list_filter = ('assoc_type',)
+    # Not supported by MongoDB
+    # list_filter = ('assoc_type',)
     search_fields = ('server_url',)
 
 
