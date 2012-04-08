@@ -2,9 +2,9 @@
 from datetime import timedelta
 
 from django.db import models
-from django.conf import settings
 
 from social_auth.fields import JSONField
+from social_auth.utils import setting
 
 
 # If User class is overridden, it *must* provide the following fields
@@ -16,8 +16,8 @@ from social_auth.fields import JSONField
 #   def is_authenticated():
 #       ...
 
-if getattr(settings, 'SOCIAL_AUTH_USER_MODEL', None):
-    User = models.get_model(*settings.SOCIAL_AUTH_USER_MODEL.rsplit('.', 1))
+if setting('SOCIAL_AUTH_USER_MODEL'):
+    User = models.get_model(*setting('SOCIAL_AUTH_USER_MODEL').rsplit('.', 1))
 else:
     from django.contrib.auth.models import User
 
@@ -37,13 +37,24 @@ class UserSocialAuth(models.Model):
         """Return associated user unicode representation"""
         return unicode(self.user)
 
+    @property
+    def tokens(self):
+        """Return access_token stored in extra_data or None"""
+        # Make import here to avoid recursive imports :-/
+        from social_auth.backends import get_backends
+        backend = get_backends().get(self.provider)
+        if backend:
+            return backend.AUTH_BACKEND.tokens(self)
+        else:
+            return {}
+
     def expiration_delta(self):
-        """Return saved session expiration seconds if any. Is retuned in
+        """Return saved session expiration seconds if any. Is returned in
         the form of a timedelta data type. None is returned if there's no
         value stored or it's malformed.
         """
         if self.extra_data:
-            name = getattr(settings, 'SOCIAL_AUTH_EXPIRATION', 'expires')
+            name = setting('SOCIAL_AUTH_EXPIRATION', 'expires')
             try:
                 return timedelta(seconds=int(self.extra_data.get(name)))
             except (ValueError, TypeError):

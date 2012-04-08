@@ -22,7 +22,7 @@ def social_auth_by_type_backends(request):
     data['backends'] = group_backend_by_type(data['backends'])
     data['not_associated'] = group_backend_by_type(data['not_associated'])
     data['associated'] = group_backend_by_type(data['associated'],
-                                               key=lambda assoc: assoc.provider)
+                                              key=lambda assoc: assoc.provider)
     return {'social_auth': data}
 
 
@@ -36,10 +36,11 @@ def social_auth_by_name_backends(request):
     """
     keys = get_backends().keys()
     accounts = dict(zip(keys, [None] * len(keys)))
+    user = request.user
 
-    if isinstance(request.user, User) and request.user.is_authenticated():
-        for associated in request.user.social_auth.all():
-            accounts[associated.provider.replace('-', '_')] = associated
+    if isinstance(user, User) and user.is_authenticated():
+        accounts.update((assoc.provider.replace('-', '_'), assoc)
+                            for assoc in user.social_auth.all())
 
     return {'social_auth': accounts}
 
